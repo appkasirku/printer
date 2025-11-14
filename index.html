@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0d6efd">
+<title>Thermal Print 58mm</title>
+
+
+
+  <script>
+        // Daftar Service Worker
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("service-worker.js")
+                    .then(() => console.log("SW registered"))
+                    .catch(err => console.error("SW error:", err));
+            });
+        }
+/*
+        let bluetoothDevice = null;
+        let printerCharacteristic = null;
+
+        async function connectPrinter() {
+            try {
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ["0000ffe0-0000-1000-8000-00805f9b34fb"]
+                });
+
+                const server = await bluetoothDevice.gatt.connect();
+                const service = await server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
+                printerCharacteristic = await service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
+
+                // Simpan ke localStorage agar bisa reconnect otomatis
+                localStorage.setItem("printerId", bluetoothDevice.id);
+
+                alert("Printer terhubung!");
+
+            } catch (err) {
+                console.error(err);
+                alert("Gagal konek: " + err);
+            }
+        }
+
+        // Auto reconnect ketika app dibuka ulang
+        async function tryReconnect() {
+            const savedId = localStorage.getItem("printerId");
+            if (!savedId) return;
+
+            try {
+                const device = await navigator.bluetooth.getDevices();
+                bluetoothDevice = device.find(d => d.id === savedId);
+
+                if (!bluetoothDevice) return;
+
+                const server = await bluetoothDevice.gatt.connect();
+                const service = await server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
+                printerCharacteristic = await service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
+
+                console.log("Auto reconnected!");
+            } catch (err) {
+                console.log("Auto reconnect gagal:", err);
+            }
+        }
+
+        async function printText() {
+            if (!printerCharacteristic) {
+                alert("Belum terhubung ke printer.");
+                return;
+            }
+
+            const text = "Hello from PWA Printer!\n\n";
+            const encoder = new TextEncoder();
+            await printerCharacteristic.writeValue(encoder.encode(text));
+
+            alert("Printed!");
+        }
+
+        window.onload = tryReconnect;
+        */
+    </script>
+
+
+
+
+<style>
+  body { font-family: Arial; padding: 20px; }
+  button { padding: 10px 15px; margin-bottom: 10px; }
+  #status { margin-top: 10px; font-weight: bold; }
+</style>
+<link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+
+<h2>Thermal Printer Bluetooth</h2>
+
+<button onclick="scanBluetooth()">🔍 SCAN SERVICES</button>
+<p id="uuid">Hasil:</p>
+
+<br>
+
+<button onclick="connectPrinter()">🔗 Hubungkan Printer</button>
+<br />
+<button onclick="buatStruk()">🧾 Buat Struk</button>
+
+<div id="status">Status: belum terhubung</div>
+
+
+<style>
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+.form-struk {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 999;
+	background: rgba(0, 0, 0, 0.5);
+	display: none;
+}
+.form-struk.show {
+	display: block;
+}
+.form-struk form {
+	width: calc(100% - 20px);
+	max-width: 480px;
+	padding: 20px;
+	border-radius: 10px;
+	background: #fff;
+	margin: 15px auto;
+}
+.form-struk form h3 {
+	color: #333;
+	margin-bottom: 20px;
+}
+.form-struk form input {
+	display: block;
+	padding: 8px 10px;
+	margin: 3px 0;
+	border-radius: 4px;
+	border: none;
+	box-shadow: 0 0 0 1px #999;
+	width: 100%;
+}
+.form-struk form button {
+	margin-left: 20px;
+	background: #aaa;
+	border: none;
+	box-shadow: 0 0 0 1px #aaa;
+	border-radius: 4px;
+}
+.form-struk form button[type="submit"] {
+	box-shadow: 0 0 0 1px gray;
+	background: #555;
+	color: #fff;
+}
+.form-struk form .row.flex {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+}
+.form-struk form .flex-end {
+	display: flex;
+	justify-content: flex-end;
+}
+.form-struk .row {
+	margin-bottom: 10px;
+}
+.form-struk .row.mb-20 {
+	margin-bottom: 20px;
+}
+.form-struk .row.mb-0 {
+	margin-bottom: 0;
+}
+</style>
+<div id="formStruk" class="form-struk">
+	<form>
+		<h3>Buat Struk Belanja</h3>
+		<div class="row">
+			<label>Nama Barang</label>
+			<input id="namaBarang" type="text">
+		</div>
+		<div class="row flex">
+			<div>
+				<label>Harga Barang</label>
+				<input id="hargaBarang" inputmode="numeric">
+			</div>
+			<div>
+				<label>Jumlah Barang</label>
+				<input id="jumlahBarang" inputmode="numeric">
+			</div>
+		</div>
+		<div class="row flex">
+			<div>
+				<label>Total Harga</label>
+				<input id="totalHarga" inputmode="numeric">
+			</div>
+			<div>
+				<label>Diskon Harga</label>
+				<input id="diskonHarga" inputmode="numeric">
+			</div>
+		</div>
+		<div class="row flex mb-20">
+			<div>
+				<label>Uang Dibayar</label>
+				<input id="uangDibayar" inputmode="numeric">
+			</div>
+			<div>
+				<label>Kembalian</label>
+				<input id="uangKembalian" inputmode="numeric">
+			</div>
+		</div>
+		<div class="row flex-end mb-0">
+			<button id="tutupStruk" type="reset">Tutup</button>
+			<button id="printStruk" type="submit">Print Struk</button>
+		</div>
+	</form>
+</div>
+
+
+<!-- ========================================================= -->
+<!-- SCAN SEMUA SERVICE DAN CHARACTERISTIC -->
+<!-- ========================================================= -->
+<script>
+async function scanBluetooth() {
+    try {
+        const device = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: [
+                0xff00, 0xff01, 0xff02, 
+                '0000ffe0-0000-1000-8000-00805f9b34fb',
+                '0000ffe1-0000-1000-8000-00805f9b34fb',
+                '000018f0-0000-1000-8000-00805f9b34fb',
+                '00002af1-0000-1000-8000-00805f9b34fb',
+                '0000ae30-0000-1000-8000-00805f9b34fb',
+                '0000ae01-0000-1000-8000-00805f9b34fb'
+            ]
+        });
+
+        const server = await device.gatt.connect();
+        const services = await server.getPrimaryServices();
+
+        let output = "Hasil:<br>";
+        for (const service of services) {
+            output += `<br><b>SERVICE:</b> ${service.uuid}<br>`;
+            const chars = await service.getCharacteristics();
+            for (const c of chars) {
+                output += `Characteristic: ${c.uuid}<br>`;
+                output += `Properties: ${JSON.stringify(c.properties)}<br><br>`;
+            }
+        }
+
+        document.getElementById("uuid").innerHTML = output;
+
+    } catch (err) {
+        alert("Error: " + err);
+    }
+}
+
+/*
+async function scanBluetooth() {
+    try {
+        const device = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: ['device_information', 'battery_service', 'generic_access', 'generic_attribute', 0xff00, 0xff01, 0xff02, '0000ffe0-0000-1000-8000-00805f9b34fb']
+        });
+
+        const server = await device.gatt.connect();
+        const services = await server.getPrimaryServices();
+
+        let output = "Hasil:<br>";
+
+        for (const service of services) {
+            output += `<br><b>SERVICE:</b> ${service.uuid}<br>`;
+            const chars = await service.getCharacteristics();
+
+            for (const c of chars) {
+                output += `Characteristic: ${c.uuid}<br>`;
+                output += `Properties: ${JSON.stringify(c.properties)}<br><br>`;
+            }
+        }
+
+        document.getElementById("uuid").innerHTML = output;
+
+    } catch (err) {
+        alert("Error: " + err);
+    }
+}
+*/
+</script>
+
+
+
+<!-- ========================================================= -->
+<!-- KONEKSI PRINTER (AKAN DIPILIH OTOMATIS SETELAH SCAN) -->
+<!-- ========================================================= -->
+<script>
+let printerDevice = null;
+let printerCharacteristic = null;
+
+async function connectPrinter() {
+    try {
+        printerDevice = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb', 0xff00, 0xff01, 0xff02]
+        });
+
+        const server = await printerDevice.gatt.connect();
+        const services = await server.getPrimaryServices();
+
+        // >>> Printer thermal BLE PASTI punya characteristic dengan "writeWithoutResponse"
+        for (const service of services) {
+            const chars = await service.getCharacteristics();
+            for (const c of chars) {
+                if (c.properties.writeWithoutResponse || c.properties.write) {
+                    printerCharacteristic = c; 
+                    break;
+                }
+            }
+        }
+
+        if (!printerCharacteristic) {
+            return alert("Tidak ditemukan characteristic untuk mengirim data!");
+        }
+
+        document.getElementById("status").textContent = 
+            "Status: TERHUBUNG ✔️ (" + printerCharacteristic.uuid + ")";
+
+        alert("Printer berhasil terhubung!");
+    } catch (err) {
+        alert("Gagal terhubung: " + err);
+    }
+}
+</script>
+
+
+
+<!-- ========================================================= -->
+<!-- PRINT STRUK -->
+<!-- ========================================================= -->
+<script>
+/*
+function buatStruk() {
+    return (
+`TOKO BERAS 20 DESEMBER
+Jl. Raya Kemerdekaan No. 21
+------------------------------
+Produk  : Rojolele Special 5kg
+Harga   : Rp 62.500
+Qty     : 1
+------------------------------
+TOTAL   : Rp 62.500
+==============================
+Terima kasih
+Sudah berbelanja
+
+\n\n`
+    );
+}
+*/
+
+function toBytes(text) {
+    return new TextEncoder("utf-8").encode(text);
+}
+/*
+async function printStruk() {
+    if (!printerCharacteristic) {
+        return alert("Printer belum terhubung!");
+    }
+
+    let esc_init = new Uint8Array([0x1B, 0x40]); 
+    let esc_align_left = new Uint8Array([0x1B, 0x61, 0x00]);
+
+    let text = buatStruk();
+    let bytes = toBytes(text);
+
+    try {
+        await printerCharacteristic.writeValue(esc_init);
+        await printerCharacteristic.writeValue(esc_align_left);
+        await printerCharacteristic.writeValue(bytes);
+
+       // alert("Struk berhasil dicetak!");
+    } catch (err) {
+        alert("Gagal print: " + err);
+    }
+}
+*/
+
+function bukaStruk() {
+	const formStruk = document.getElementById("formStruk");
+	formStruk.classList.add("show");
+	const namaBarang = document.getElementById("namaBarang");
+	namaBarang.focus();
+}
+
+function tutupStruk() {
+	const formStruk = document.getElementById("formStruk");
+	
+	formStruk.classList.remove("show");
+}
+
+async function buatStruk() {
+	//e.preventDefault();
+    if (!printerCharacteristic) {
+        return alert("Printer belum terhubung!");
+    }
+
+    let esc_init = new Uint8Array([0x1B, 0x40]); 
+    let esc_align_left = new Uint8Array([0x1B, 0x61, 0x00]);
+    
+    bukaStruk();
+/*
+    let text = bukaStruk();
+    let bytes = toBytes(text);
+
+    try {
+        await printerCharacteristic.writeValue(esc_init);
+        await printerCharacteristic.writeValue(esc_align_left);
+        await printerCharacteristic.writeValue(bytes);
+
+       // alert("Struk berhasil dicetak!");
+    } catch (err) {
+        alert("Gagal print: " + err);
+    }*/
+}
+
+document.getElementById("printStruk").addEventListener("click", printStruk);
+
+document.getElementById("tutupStruk").addEventListener("click", tutupStruk);
+</script>
+
+</body>
+</html>
