@@ -1,13 +1,13 @@
 self.addEventListener("install", (e) => {
-    e.waitUntil(
-        caches.open("pwa-cache").then((cache) => {
-            return cache.addAll([
-                "/printer/",
-                "/printer/index.html",
-                "/printer/manifest.json"
-            ]);
-        })
-    );
+  e.waitUntil(
+    caches.open("pwa-cache").then((cache) => {
+      return cache.addAll([
+        "./",
+        "./index.html",
+        "./manifest.json"
+      ]);
+    })
+  );
 });
 
 self.addEventListener("fetch", (e) => {
