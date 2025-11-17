@@ -3,16 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0d6efd">
+<meta name="theme-color" content="#00aaee">
 <title>Thermal Print 58mm</title>
-
-
-
   <script>
         // Daftar Service Worker
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
-                navigator.serviceWorker.register("./service-worker.js")
+                navigator.serviceWorker.register("service-worker.js")
                     .then(() => console.log("SW registered"))
                     .catch(err => console.error("SW error:", err));
             });
@@ -89,7 +86,7 @@
   button { padding: 10px 15px; margin-bottom: 10px; }
   #status { margin-top: 10px; font-weight: bold; }
 </style>
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="manifest.json">
 </head>
 
 <body>
@@ -97,7 +94,7 @@
 <h2>Thermal Printer Bluetooth</h2>
 
 <button onclick="scanBluetooth()">🔍 SCAN SERVICES</button>
-<p id="uuid">Hasil:</p>
+<p id="uuid"></p>
 
 <br>
 
@@ -105,7 +102,7 @@
 <br />
 <button onclick="buatStruk()">🧾 Buat Struk</button>
 
-<div id="status">Status: belum terhubung</div>
+<div id="status" style="color:red">Status: belum terhubung</div>
 
 
 <style>
@@ -120,45 +117,93 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	z-index: 999;
-	background: rgba(0, 0, 0, 0.5);
+	z-index: 999;/*
+	background: rgba(0, 0, 0, 0.5);*/
+	background: #fff;/*
+	display: block;*/
+}
+.form-struk.hidden {
 	display: none;
 }
-.form-struk.show {
-	display: block;
-}
-.form-struk form {
-	width: calc(100% - 20px);
-	max-width: 480px;
-	padding: 20px;
-	border-radius: 10px;
+.form-struk .boxer {
 	background: #fff;
-	margin: 15px auto;
+	padding: 5px 5px 0 0;
+	margin: 4px auto;
+	width: calc(100% - 6px);
+	max-width: 480px;/*
+	border-radius: 4px;*//*
+	border-top: 10px ridge #ccc;
+	border-left: 10px ridge #eee;
+	border-right: 10px groove #eee;
+	border-bottom: 10px ridge #aaa;*/
 }
-.form-struk form h3 {
+.boxer .title {
+	margin-bottom: 0;
+}
+.boxer .title h3 {
+	text-align: left;
 	color: #333;
-	margin-bottom: 20px;
+	margin: 0 10px;
+	font-size: 14px;
+}
+.form-struk form {/*
+	padding: 10px;*/
+	background: transparent;
+	margin: 0;
+	display: flex;/*
+	gap: 5px;*/
+	justify-content: space-between;
+}
+.form-struk form label {
+	font-size: 12px;
+	font-family: Monospace;
+	font-weight: bold;
+	color: #333;
 }
 .form-struk form input {
 	display: block;
 	padding: 8px 10px;
 	margin: 3px 0;
 	border-radius: 4px;
-	border: none;
-	box-shadow: 0 0 0 1px #999;
+	border: none;/*
+	box-shadow: inset 0 0 2px 1px #bbb;*/
+	box-shadow: inset 1px 1px 0 1px #aaa;
 	width: 100%;
+	outline: none;
+	font-size: 14px;
+	font-family: Monospace;
 }
-.form-struk form button {
-	margin-left: 20px;
+.form-struk form input:focus {
+	box-shadow: inset 1px 1px 0 1px #888;/*
+	box-shadow: inset 1px 1px 0 1px #999;*/
+}
+.form-struk form input[readonly] {
+	background: #fff;
+	box-shadow: inset 0 0 0 1px #ccc;
+}
+.form-struk form input[readonly]:focus {/*
+	box-shadow: inset 0 0 0 1px brown;*/
+	box-shadow: inset 0 0 0 1px #aaa;
+}
+.form-struk form button {/*
+	margin-left: 20px;*/
 	background: #aaa;
 	border: none;
 	box-shadow: 0 0 0 1px #aaa;
 	border-radius: 4px;
-}
-.form-struk form button[type="submit"] {
-	box-shadow: 0 0 0 1px gray;
-	background: #555;
 	color: #fff;
+}
+.form-struk form button[type="submit"] {/*
+	box-shadow: 0 0 0 1px #00aaee;
+	background: #00aaee;*/
+	background: #bbb;
+	color: #000;
+	border: 3px inset transparent;
+	padding: 5px 12px;
+}
+.form-struk form button[type="submit"]:focus {
+	border-radius: 0;
+	border-color: #ccc;
 }
 .form-struk form .row.flex {
 	display: flex;
@@ -167,7 +212,8 @@
 }
 .form-struk form .flex-end {
 	display: flex;
-	justify-content: flex-end;
+	justify-content: center;
+	gap: 20px;
 }
 .form-struk .row {
 	margin-bottom: 10px;
@@ -175,54 +221,473 @@
 .form-struk .row.mb-20 {
 	margin-bottom: 20px;
 }
-.form-struk .row.mb-0 {
+.form-struk .row.flex.mb-0 {
 	margin-bottom: 0;
+}
+
+.form-struk .box-form {
+	padding: 5px 8px;
+	margin: 5px;
+	background: rgba(0, 0, 0, 0.15);
+	border-radius: 6px;
+	box-shadow: inset 0 0 20px gray;
+	width: 100%;
+	min-width: 240px;
+	max-width: 480px;
+	max-height: 280px;
+	position: relative;
+	display: block;
+}
+/*
+.form-struk {
+	display: block;
+}*/
+.form-struk .box-prev {
+	margin: 5px auto 0;
+	background: #fff;
+	width: 100%;
+	max-width: 100px;
+	min-height: 300px;
+}
+.box-prev hr {
+	height: 0;
+	border: none;
+	border-bottom: 1px dotted #999;
+	margin: 2px 0;
+}
+.box-prev .btn-print {
+	text-align: center;
+	margin: 20px 0 0;
+}
+.box-prev .btn-print button {/*
+	display: inline-block;*/
+	padding: 8px 10px;
+	font-size: 10px;
+	background: #555!important;
+	font-weight: bold!important;
+	box-shadow: 0 0 1px #777!important;
+	font-family: Monospace;
+}
+.preview {
+	font-size: 10px;/*
+	padding: 20px 5px;*/
+	line-height: 7px;
+	font-family: Monospace;
+	position: relative;
+}
+.preview h4.toko {
+	font-size: 6px;
+	margin-bottom: 10px;
+	color: #444;
+}
+.preview .toko,
+.preview .whatsapp,
+.preview .alamat,
+.preview .tq {
+	text-align: center;
+}
+.preview p,
+.preview span {
+	font-size: 6px;
+	letter-spacing: -0.25px;
+}
+.preview .flex {
+	display: flex;
+	justify-content: space-between;
+}
+.box-prev.full {
+	position: fixed;
+	z-index: 999;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: #fff;
+	width: 100%;
+	max-width: 100%;
+	max-height: 100%;
+	overflow-y: auto;
+}
+.box-prev.full .preview {
+	font-size: 16px;
+	line-height: normal;
+	width: 100%;
+	max-width: 300px;
+	margin: 20px auto;
+}
+.box-prev.full .preview hr {
+	margin: 5px 0;
+}
+.box-prev.full .preview h4.toko {
+	font-size: 16px;
+	margin-bottom: 20px;
+	color: #333;
+}
+.box-prev.full .preview p,
+.box-prev.full .preview span {
+	font-size: 14px;
+	letter-spacing: -0.25px;
 }
 </style>
 <div id="formStruk" class="form-struk">
-	<form>
-		<h3>Buat Struk Belanja</h3>
-		<div class="row">
-			<label>Nama Barang</label>
-			<input id="namaBarang" type="text">
+	<div class="boxer">
+		<div class="title">
+			<h3>Buat Struk Belanja</h3>
 		</div>
-		<div class="row flex">
-			<div>
-				<label>Harga Barang</label>
-				<input id="hargaBarang" inputmode="numeric">
+		
+		<form>
+			<div class="box-form">
+				<div class="row">
+					<label>Nama Barang</label>
+					<input id="namaBarang" type="text">
+				</div>
+				<div class="row flex">
+					<div>
+						<label>Harga Barang</label>
+						<input id="hargaBarang" inputmode="numeric">
+					</div>
+					<div>
+						<label>Jumlah Barang</label>
+						<input id="jumlahBarang" inputmode="numeric">
+					</div>
+				</div>
+				<div class="row flex">
+					<div>
+						<label>Diskon Harga</label>
+						<input id="diskonHarga" inputmode="numeric">
+					</div>
+					<div style="margin-top:23px">
+						<button id="inputTransaksi" type="submit">Tambah</button>
+					</div>
+				</div>
+				<hr>
+				<div class="row flex">
+					<div>
+						<label>Total Harga</label>
+						<input id="totalHarga" type="text" readonly>
+					</div>
+					<div>
+						<label>Total Diskon</label>
+						<input id="totalDiskon" type="text" readonly>
+					</div>
+				</div>
+<style>
+.btn-per-pro {
+	text-align: center;
+	margin: 30px 0 0;
+	padding: 2px;
+}
+.btn-per-pro button {
+	margin: 0 5px;
+}
+.btn-per-pro button:nth-child(2) {
+	background: #777;
+}
+</style>
+				<div class="btn-per-pro">
+					<button id="perbesar" class="perbesar" type="button">Lihat/Hapus</button>
+					<button id="prosesPrint" type="button">Print Struk</button>
+				</div>
 			</div>
-			<div>
-				<label>Jumlah Barang</label>
-				<input id="jumlahBarang" inputmode="numeric">
+			
+			<div id="previewStruk" class="box-prev">
+				<div class="preview">
+					<h4 class="toko">TOKO BERAS 20 DESEMBER</h4>
+					<p class="whatsapp">Kotak: 0812 8524 2366</p>
+					<p class="alamat">Jl. 20 Desember RT02/RW03</p>
+					<hr>
+					<div class="kasir flex">
+						<span>Kasir</span>
+						<span class="nama">Mas Pale</span>
+					</div>
+					<div class="waktu flex">
+						<span>Tanggal</span>
+						<span class="tanggal"></span>
+					</div>
+					<hr>
+					<div class="produk">
+						<div style="padding:4px;text-align:center;color:#aaa;font-weight:bold">Struk Belanja</div>
+<!--
+						<span class="n-produk">Rojolele Super 5 Kg</span>
+						<div class="flex">
+							<span class="hxj">75.000 x 3</span>
+							<span class="sth">225.000</span>
+						</div>
+-->
+					</div>
+					<hr>
+					<div class="flex">
+						<span>Subtotal</span>
+						<span class="el-subtotal">0</span>
+					</div>
+					<div class="flex">
+						<span>Diskon</span>
+						<span class="el-diskon">0</span>
+					</div>
+					<div class="flex">
+						<span>Total</span>
+						<span class="el-total">0</span>
+					</div>
+					<hr>
+					<div class="flex">
+						<span>Bayar</span>
+						<span class="bayar">0</span>
+					</div>
+					<div class="flex">
+						<span>Kembali</span>
+						<span class="kembali">0</span>
+					</div>
+					<hr>
+					<div class="tq">
+						<p>Terima Kasih</p>
+						<p>Sudah Berbelanja</p>
+					</div>
+				</div>
+				
+				<div class="btn-print" style="margin:20px 0 10px">
+					<button id="tutup" class="tutup" type="button">&times;</button>
+				</div>
+				<!--
+				<div class="btn-print" style="margin:10px 0">
+					<button id="prosesPrint" class="proses-print2" type="button">Proses Print</button>
+				</div>-->
+			</div>
+		</form>
+		
+<style>
+.btn-print {
+	display: flex;
+	justify-content: center;
+}
+.btn-print .tutup {
+	display: none;
+}
+.btn-print .tutup.show {
+	height: 30px;
+	width: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #aaa!important;
+	color: #333!important;
+	font-size: 16px;
+}
+
+.pembayaran {
+	position: fixed;
+	width: 250px;
+	z-index: 999;
+	background: #eee;
+	left: 50%;
+	top: 20%;
+	transform: translateX(-50%);
+	padding: 30px 20px 0;
+	border-radius: 6px;
+	box-shadow: 0 0 0 1px #bbb,
+	inset 0 0 30px #aaa,
+	4px 8px 10px rgba(0, 0, 0, 0.25);
+	display: none;
+}
+.pembayaran.show {
+	display: block;
+}
+.pembayaran .row {
+	text-align: center;
+}
+.pembayaran p.su {
+	font-weight: bold;
+	font-size: 24px;
+	background: #fff;
+	padding: 0 6px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	overflow-x: scroll;
+}
+.pembayaran input {
+	width: 100%;
+	padding: 8px 10px;/*
+	margin-bottom: 20px;*/
+	text-align: center;
+	outline: none;
+	font-family: Monospace;
+	font-size: 18px;
+	font-weight: bold;
+}
+.pembayaran input::placeholder {
+	font-size: 14px;
+	font-weight: normal;
+}
+.pembayaran input:focus {
+	border-color: #aaa;
+}
+.pembayaran button {
+	display: inline-block;
+	background: #999;
+	border: 3px outset #ccc;
+	border-top-width: 2px;
+	border-left-width: 2px;
+	border-radius: 2px;
+	padding: 8px 12px;
+	font-weight: bold;
+	font-family: Monospace;
+}
+.pembayaran button:hover {
+	background: rgba(0, 0, 0, 0.2);
+}
+.pembayaran button:focus {
+	background: #888;
+	border: 3px inset #bbb;
+	border-top-width: 2px;
+	border-left-width: 2px;
+}
+.pembayaran .sisa-uang {
+	margin-bottom: 20px;
+}
+.pembayaran .close {
+	background: #ddd;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 22px;
+	height: 25px;
+	padding: 0;
+	margin: 0;
+	font-size: 24px;
+	color: gray;
+	background: transparent;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+</style>
+		<div class="pembayaran">
+			<span id="tutupPembayaran" class="close">&times;</span>
+			<div class="row">
+				<input id="pembayaran" inputmode="numeric" placeholder="Masukkan pembayaran">
+			</div>
+			<div class="row">
+				<div class="sisa-uang">
+					Kembalian
+					<p class="su">0</p>
+				</div>
+				<button id="printStruk">Print Struk</button>
 			</div>
 		</div>
-		<div class="row flex">
-			<div>
-				<label>Total Harga</label>
-				<input id="totalHarga" inputmode="numeric">
-			</div>
-			<div>
-				<label>Diskon Harga</label>
-				<input id="diskonHarga" inputmode="numeric">
-			</div>
-		</div>
-		<div class="row flex mb-20">
-			<div>
-				<label>Uang Dibayar</label>
-				<input id="uangDibayar" inputmode="numeric">
-			</div>
-			<div>
-				<label>Kembalian</label>
-				<input id="uangKembalian" inputmode="numeric">
-			</div>
-		</div>
-		<div class="row flex-end mb-0">
-			<button id="tutupStruk" type="reset">Tutup</button>
-			<button id="printStruk" type="submit">Print Struk</button>
-		</div>
-	</form>
+		
+	</div>
 </div>
 
+<script>
+function kalkulasiHarga() {
+	const inputNama = document.getElementById("namaBarang");
+	const inputHarga = document.getElementById("hargaBarang");
+	const inputJumlah = document.getElementById("jumlahBarang");
+	const inputDiskon = document.getElementById("diskonHarga");
+	const inputTotalHarga = document.getElementById("totalHarga");
+	const inputTotalDiskon = document.getElementById("totalDiskon");
+	
+	if (inputNama.value.trim() === "") {
+		if (inputHarga.value.trim() === "0"
+		&& inputJumlah.value.trim() === "0"
+		&& inputDiskon.value.trim() === "0") {
+			inputHarga.value = inputJumlah.value = inputDiskon.value = inputTotalHarga.value = inputTotalDiskon.value = "";
+			return;
+		}
+	}
+	
+	inputHarga.value = formatRupiah(inputHarga.value.trim().replace(/\D/g, ""));
+	inputJumlah.value = inputJumlah.value.trim().replace(/\./g, ",");
+	inputDiskon.value = formatRupiah(inputDiskon.value.trim().replace(/\D/g, ""));
+	
+	const harga = Number(inputHarga.value.replace(/\D/g, ""));
+	const jumlah = inputJumlah.value.replace(",", ".");
+	const diskon = Number(inputDiskon.value.replace(/\D/g, ""));
+	const totalHarga = formatRupiah(harga * jumlah);
+	const totalDiskon = formatRupiah(diskon * jumlah);
+	inputTotalHarga.value = totalHarga;// === "" ? "" : totalHarga;
+	inputTotalDiskon.value = totalDiskon;// === "" ? "" : totalDiskon;
+	
+}
+
+document.querySelectorAll(".box-form input").forEach((input) => {
+		input.addEventListener("input", (e) => {
+			kalkulasiHarga();
+		});
+});
+
+document.getElementById("prosesPrint").addEventListener("click", () => {
+    document.querySelector(".pembayaran").classList.add("show");
+
+    const pembayaran = document.getElementById("pembayaran");
+    const sisaUang = document.querySelector(".su");
+    
+    const subtotal = cart.reduce((a, b) => a + b.subtotal, 0);
+    const subdiskon = cart.reduce((a, b) => a + b.subdiskon, 0);
+    const total = subtotal - subdiskon;
+
+    // ❗ Hapus listener lama biar tidak dobel-dobel
+    pembayaran.replaceWith(pembayaran.cloneNode(true));
+    const bayarInput = document.getElementById("pembayaran");
+
+    bayarInput.focus();
+    
+    bayarInput.addEventListener("input", () => {
+        // Ambil angka saja
+        const angkaBayar = Number(bayarInput.value.replace(/\D/g, ""));
+
+        // Hitung kembalian
+        const kmb = angkaBayar - total;
+
+        if (bayarInput.value === "") { bayarInput.value = ""; sisaUang.textContent = "0"; return; }
+        
+        // Tampilkan format Rupiah di input pembayaran
+        bayarInput.value = formatRupiah(angkaBayar);
+        
+        // Tampilkan kembalian ke layar (format rupiah)
+        sisaUang.textContent = formatRupiah(kmb);
+    });
+});
+
+/*
+document.getElementById("prosesPrint").addEventListener("click", () => {
+	document.querySelector(".pembayaran").classList.add("show");
+	const pembayaran = document.getElementById("pembayaran");
+	const sisaUang = document.querySelector(".su");
+	pembayaran.focus();
+	const subtotal = cart.reduce((a, b) => a + b.subtotal, 0);
+	const subdiskon = cart.reduce((a, b) => a + b.subdiskon, 0);
+	const total = subtotal - subdiskon;
+	pembayaran.addEventListener("input", () => {
+		pembayaran.value = formatRupiah(pembayaran.value.replace(/\D/g, ""));
+		const kmb = pembayaran.value - total;
+		sisaUang.textContent = kmb;
+	});
+});
+*/
+
+// fungsi tutup form pembayaran
+function tutupPembayaran() {
+	document.querySelector(".pembayaran").classList.remove("show");
+	document.getElementById("pembayaran").value = "";
+	document.querySelector(".su").textContent = "0";
+}
+
+document.getElementById("tutupPembayaran").addEventListener("click", tutupPembayaran);
+
+document.getElementById("perbesar").addEventListener("click", () => {
+	const tutup = document.getElementById("tutup");
+	const preview = document.querySelector(".box-prev");
+	preview.classList.toggle("full");
+	tutup.classList.toggle("show");
+	tutup.onclick = () => {
+		preview.classList.toggle("full");
+		tutup.classList.toggle("show");
+	}
+});
+</script>
 
 <!-- ========================================================= -->
 <!-- SCAN SEMUA SERVICE DAN CHARACTERISTIC -->
@@ -247,55 +712,14 @@ async function scanBluetooth() {
         const services = await server.getPrimaryServices();
 
         let output = "Hasil:<br>";
-        for (const service of services) {
-            output += `<br><b>SERVICE:</b> ${service.uuid}<br>`;
-            const chars = await service.getCharacteristics();
-            for (const c of chars) {
-                output += `Characteristic: ${c.uuid}<br>`;
-                output += `Properties: ${JSON.stringify(c.properties)}<br><br>`;
-            }
-        }
 
-        document.getElementById("uuid").innerHTML = output;
+        document.getElementById("uuid").innerHTML = "Hubungkan 👇";//output;
 
     } catch (err) {
         alert("Error: " + err);
     }
 }
-
-/*
-async function scanBluetooth() {
-    try {
-        const device = await navigator.bluetooth.requestDevice({
-            acceptAllDevices: true,
-            optionalServices: ['device_information', 'battery_service', 'generic_access', 'generic_attribute', 0xff00, 0xff01, 0xff02, '0000ffe0-0000-1000-8000-00805f9b34fb']
-        });
-
-        const server = await device.gatt.connect();
-        const services = await server.getPrimaryServices();
-
-        let output = "Hasil:<br>";
-
-        for (const service of services) {
-            output += `<br><b>SERVICE:</b> ${service.uuid}<br>`;
-            const chars = await service.getCharacteristics();
-
-            for (const c of chars) {
-                output += `Characteristic: ${c.uuid}<br>`;
-                output += `Properties: ${JSON.stringify(c.properties)}<br><br>`;
-            }
-        }
-
-        document.getElementById("uuid").innerHTML = output;
-
-    } catch (err) {
-        alert("Error: " + err);
-    }
-}
-*/
 </script>
-
-
 
 <!-- ========================================================= -->
 <!-- KONEKSI PRINTER (AKAN DIPILIH OTOMATIS SETELAH SCAN) -->
@@ -329,39 +753,24 @@ async function connectPrinter() {
             return alert("Tidak ditemukan characteristic untuk mengirim data!");
         }
 
-        document.getElementById("status").textContent = 
-            "Status: TERHUBUNG ✔️ (" + printerCharacteristic.uuid + ")";
+        const status = document.getElementById("status");
+        status.style.color = "blue";
+        status.textContent =  `Status: Printer ${printerDevice.name} terhubung`;
+        	document.getElementById("formStruk").classList.toggle("hidden");
+        setTimeout(() => {
+        }, 1000);
 
-        alert("Printer berhasil terhubung!");
+        //alert("Printer berhasil terhubung!");
     } catch (err) {
         alert("Gagal terhubung: " + err);
     }
 }
 </script>
 
-
-
 <!-- ========================================================= -->
 <!-- PRINT STRUK -->
 <!-- ========================================================= -->
 <script>
-/***
-	return (
-`TOKO BERAS 20 DESEMBER
-Jl. Raya Kemerdekaan No. 21
-------------------------------
-Produk  : Rojolele Special 5kg
-Harga   : Rp 62.500
-Qty     : 1
-------------------------------
-TOTAL   : Rp 62.500
-==============================
-Terima kasih
-Sudah berbelanja
-
-\n\n`
-    );
-***/
 
 async function printLine(text, align = 0) {
     if (!printerCharacteristic) return alert("Printer belum terhubung!");
@@ -372,16 +781,7 @@ async function printLine(text, align = 0) {
     await printerCharacteristic.writeValue(esc_align);
     await printerCharacteristic.writeValue(bytes);
 }
-/*
-function twoCol(left, right) {
-    const width = 32;                       // lebar kertas printer thermal 58mm
-    left = left.toString();
-    right = right.toString();
 
-    const space = width - left.length - right.length;
-    return left + " ".repeat(space > 0 ? space : 1) + right;
-}
-*/
 function lineLR(left, right, width = 32) {
     let space = width - left.length - right.length;
     if (space < 1) space = 1;
@@ -403,50 +803,6 @@ async function printStyled(text, align = 0, style = 0x00) {
     await printerCharacteristic.writeValue(new Uint8Array([0x1B, 0x21, 0x00]));
 }
 
-function prosesStruk() {
-    const namaBarang = document.getElementById("namaBarang");
-    const hargaBarang = document.getElementById("hargaBarang");
-    const jumlahBarang = document.getElementById("jumlahBarang");
-    const diskonHarga = document.getElementById("diskonHarga");
-    const uangDibayar = document.getElementById("uangDibayar");
-
-    const subtotal = hargaBarang.value * jumlahBarang.value;
-    const diskon = diskonHarga.value * jumlahBarang.value;
-    const total = subtotal - diskon;
-    const kembali = uangDibayar.value - total;
-
-    return {
-        header: 
-`TOKO BERAS 20 DESEMBER
-[ WA: 0812 8524 2366 ]
---------------------------------
-TOKO BERAS 20 DESEMBER
-Jl. 20 Desember RT02/RW03
---------------------------------
-`,
-
-        body:
-`Kasir     : Mas Pale
-Tanggal   : 14 Nov 2025
---------------------------------
-${namaBarang.value}
-Rp ${hargaBarang.value} x ${jumlahBarang.value}   = ${subtotal}
---------------------------------
-Subtotal  : ${subtotal}
-Diskon    : -${diskon}
-Total     : ${total}
---------------------------------
-Bayar     : ${uangDibayar.value}
-Kembali   : ${kembali}
---------------------------------
-`,
-
-        footer:
-`Terima kasih
-Sudah berbelanja`
-    };
-}
-
 function toBytes(text) {
     return new TextEncoder("utf-8").encode(text);
 }
@@ -458,7 +814,9 @@ async function writeChunked(characteristic, data, chunkSize = 500) {
     }
 }
 
-function formatRupiah(value) {
+function formatRupiah(value) {/*
+  if (isNaN(n) || n === null) return "-";
+  return Number(n).toLocaleString("id-ID", { maximumFractionDigits: 0 });*/
     value = Number(value) || 0;
 
     return value.toLocaleString("id-ID", {
@@ -470,17 +828,273 @@ function formatRupiah(value) {
 async function printStruk(e) {
     e.preventDefault();
 
-    if (!printerCharacteristic) return alert("Printer belum terhubung!");
+    if (!printerCharacteristic) {
+    	document.querySelector(".form-struk").classList.add("hidden");
+    	alert("Printer belum terhubung!\n\nSilakan SCAN SERVICES atau langsung Hubungkan Printer.");
+    	return;
+    }
+    
+    await printerCharacteristic.writeValue(new Uint8Array([0x1B, 0x40])); // reset printer
+    
+    await printStyled("TOKO BERAS 20 DESEMBER", 1, 0x10);
+    
+    await printLine("Kontak: 0812 8524 2366", 1);
+    await printLine("Jl. 20 Desember RT02/RW03", 1);
+    
+    await printLine("--------------------------------");
+    
+    await printLine(lineLR("Kasir", "Admin Toko"));
+    await printLine(lineLR("Tanggal", tanggalSekarang()));
+    
+    await printLine("================================");
 
+		for (const p of cart) {
+			await printLine(`${p.namaBarang}`);
+	    await printLine(lineLR(`${formatRupiah(p.hargaBarang)} x ${p.jumlahBarang}`, formatRupiah(p.subtotal)));
+	    await printLine(lineLR(`Diskon: `, formatRupiah(p.subdiskon)));
+		}
+		
+		await printLine("--------------------------------");
+		
+		const printSubtotal = cart.reduce((a, b) => a + b.subtotal, 0);
+		const printDiskon = cart.reduce((a, b) => a + b.subdiskon, 0);
+		const printTotal = printSubtotal - printDiskon;
+
+    await printLine(lineLR("Subtotal", formatRupiah(printSubtotal)));
+    await printLine(lineLR("Diskon", "-" + (formatRupiah(printDiskon))));
+    await printLine(lineLR("Total", formatRupiah(printTotal)));
+    
+		await printLine("--------------------------------");
+		
+		const printBayar = document.getElementById("pembayaran").value;
+		const printKembali = document.querySelector(".su").textContent;
+		
+    await printLine(lineLR("Bayar", printBayar));
+    await printLine(lineLR("Kembali", printKembali));
+   
+  	await printLine("================================");
+   
+  	await printLine("Terima Kasih", 1);
+    await printLine("Sudah Berbelanja", 1);
+    await printLine("\n\n", 1);
+    
+   
+/*
     const nama = document.getElementById("namaBarang").value;
     const harga = Number(document.getElementById("hargaBarang").value);
     const jumlah = Number(document.getElementById("jumlahBarang").value);
     const diskon = Number(document.getElementById("diskonHarga").value);
-    const bayar = Number(document.getElementById("uangDibayar").value);
+    const bayar = 100000;//Number(document.getElementById("uangDibayar").value);
 
     const subtotal = harga * jumlah;
     const total = subtotal - (diskon * jumlah);
-    const kembali = bayar - total;
+    const kembali = total;//bayar - total;
+*/
+    // Reset printer
+/*
+    await printerCharacteristic.writeValue(new Uint8Array([0x1B, 0x40]));
+
+    // ===========================
+    //   HEADER (TENGAH)
+    // ===========================
+    await printStyled("TOKO BERAS 20 DESEMBER", 1, 0x10);
+    //await printLine("TOKO BERAS 20 DESEMBER", 1);
+    await printLine("\n", 1);
+    await printLine("Kontak: 0812 8524 2366", 1);
+    //await printLine("--------------------------------", 0);
+
+    // ===========================
+    //   ALAMAT (TENGAH)
+    // ===========================
+    //await printLine("TOKO BERAS 20 DESEMBER", 1);
+    await printLine("Jl. 20 Desember RT02/RW03", 1);
+    //await printLine("--------------------------------", 0);
+    await printLine("================================");
+
+    // ===========================
+    //     ISI STRUK (KIRI)
+    // ===========================
+    await printLine(lineLR("Kasir", "Mas Pale"));
+    await printLine(lineLR("Tanggal", "14 Nov 2025"));
+    await printLine("--------------------------------");
+
+    //await printLine(`${nama}`);
+    //await printLine(lineLR(`${nama} ${harga} x ${jumlah}`, `= ${subtotal}`));
+    await printLine(`${nama}`);
+    await printLine(lineLR(`${formatRupiah(harga)} x ${jumlah}`, `= ${formatRupiah(subtotal)}`));
+    await printLine("--------------------------------");
+
+    await printLine(lineLR("Subtotal", formatRupiah(subtotal)));
+    await printLine(lineLR("Diskon", "-" + (formatRupiah(diskon * jumlah))));
+    await printLine(lineLR("Total", formatRupiah(total)));
+    await printLine("--------------------------------");
+
+    await printLine(lineLR("Bayar", formatRupiah(bayar)));
+    await printLine(lineLR("Kembali", formatRupiah(kembali)));
+    //await printLine("--------------------------------");
+    await printLine("================================");
+
+    // ===========================
+    //   FOOTER (TENGAH)
+    // ===========================
+    await printLine("Terima kasih", 1);
+    await printLine("Sudah berbelanja", 1);
+    await printLine("\n\n", 1);
+*/
+    //alert("Struk berhasil dicetak!");
+    cart.length = 0;
+    tampilkanStruk();
+		tutupPembayaran();
+		document.getElementById("namaBarang").focus();
+}
+
+function bukaStruk() {
+	const formStruk = document.getElementById("formStruk");
+	formStruk.classList.remove("hidden");
+	const namaBarang = document.getElementById("namaBarang");
+	//namaBarang.focus();
+}
+
+function tutupStruk() {
+	const formStruk = document.getElementById("formStruk");
+	
+	formStruk.classList.remove("show");
+}
+
+async function buatStruk() {
+	//e.preventDefault();
+    if (!printerCharacteristic) {
+        return alert("Printer belum terhubung!");
+    }
+
+    let esc_init = new Uint8Array([0x1B, 0x40]); 
+    let esc_align_left = new Uint8Array([0x1B, 0x61, 0x00]);
+    
+    bukaStruk();
+/*
+    let text = bukaStruk();
+    let bytes = toBytes(text);
+
+    try {
+        await printerCharacteristic.writeValue(esc_init);
+        await printerCharacteristic.writeValue(esc_align_left);
+        await printerCharacteristic.writeValue(bytes);
+
+       // alert("Struk berhasil dicetak!");
+    } catch (err) {
+        alert("Gagal print: " + err);
+    }*/
+}
+
+// fungsi tampilkan struk
+function tampilkanStruk() {
+	const listProduk = document.querySelector(".produk");
+	listProduk.innerHTML = "";
+	if (cart.length > 0) {
+		cart.forEach((p, i) => {
+			listProduk.innerHTML += `
+				<div target-data="${i}" class="item" style="padding:2px 0">
+					<span class="n-produk">${p.namaBarang}</span>
+					<div class="flex">
+						<span class="hxj">${formatRupiah(p.hargaBarang)} x ${p.jumlahBarang.toString().replace(".", ",")}</span>
+						<span class="sth">${formatRupiah(p.subtotal)}</span>
+					</div>
+					<duv class="flex">
+						<span>Diskon: ${formatRupiah(p.diskonHarga)} x ${p.jumlahBarang.toString().replace(".", ",")}</span>
+						<span>${formatRupiah(p.subdiskon)}</span>
+					</div>
+				</div>
+			`;
+		});
+		//subtotal, diskon, total, bayar, kembali
+		const elSubtotal = cart.reduce((a, b) => a + b.subtotal, 0);
+		const elDiskon = cart.reduce((a, b) => a + b.subdiskon, 0);
+		const elTotal = elSubtotal - elDiskon;
+		document.querySelector(".el-subtotal").textContent = formatRupiah(elSubtotal);
+		document.querySelector(".el-diskon").textContent = formatRupiah(elDiskon);
+		document.querySelector(".el-total").textContent = formatRupiah(elTotal);
+	} else {
+		listProduk.innerHTML = `<div style="padding:4px;text-align:center;color:#aaa;font-weight:bold">Struk Belanja</div>`;
+		document.querySelector(".el-subtotal").textContent = "0";
+		document.querySelector(".el-diskon").textContent = "0";
+		document.querySelector(".el-total").textContent = "0";
+	}
+}
+
+// hapus produk dari array cart dan perbarui tampilan struk
+document.querySelector(".produk").addEventListener("click", (e) => {
+    const item = e.target.closest(".item");
+    if (!item) return;
+    const idx = Number(item.getAttribute("target-data"));
+    const nama = item.querySelector(".n-produk").textContent;
+    if (!confirm(`Hapus ${nama}?`)) return;
+    cart.splice(idx, 1);
+    tampilkanStruk();
+});
+
+// fungsi input transaksi
+let cart = [];
+
+function inputTransaksi(e) {
+	e.preventDefault();
+	const inputNamaBarang = document.getElementById("namaBarang");
+	const inputHargaBarang = document.getElementById("hargaBarang");
+	const inputJumlahBarang = document.getElementById("jumlahBarang");
+	if (inputNamaBarang.value.trim() === "") {
+		inputNamaBarang.focus();
+		return;
+	}
+	if (inputHargaBarang.value.trim() === "" || inputHargaBarang.value.trim() === "0") {
+		inputHargaBarang.focus();
+		return;
+	}
+	if (inputJumlahBarang.value.trim() === "" || inputJumlahBarang.value.trim() === "0") {
+		inputJumlahBarang.focus();
+		return;
+	}
+	const namaBarang = document.getElementById("namaBarang").value;
+	const hargaBarang = Number(document.getElementById("hargaBarang").value.replace(/\./g, ""));
+	const jumlahBarang = Number(document.getElementById("jumlahBarang").value.replace(",", "."));
+	const diskonHarga = Number(document.getElementById("diskonHarga").value.replace(/\./, ""));
+	
+	const subtotal = hargaBarang * jumlahBarang;
+	const subdiskon = diskonHarga * jumlahBarang;
+	
+	//alert(hargaBarang)
+	
+	cart.push({
+		namaBarang,
+		hargaBarang,
+		jumlahBarang,
+		diskonHarga,
+		subtotal,
+		subdiskon
+	});
+	
+	tampilkanStruk();
+	document.querySelector("#formStruk form").reset();
+	inputNamaBarang.focus();
+}
+/*
+async function inputTransaksi(e) {
+    e.preventDefault();*/
+    /*
+    if (!printerCharacteristic) {
+    	document.querySelector(".form-struk").classList.add("hidden");
+    	alert("Printer belum terhubung!\nSilakan SCAN SERVICES atau langsung Hubungkan Printer.");
+    	return;
+    }
+    */
+    /*
+    const nama = document.getElementById("namaBarang").value;
+    const harga = Number(document.getElementById("hargaBarang").value);
+    const jumlah = Number(document.getElementById("jumlahBarang").value);
+    const diskon = Number(document.getElementById("diskonHarga").value);
+    const bayar = 100000;//Number(document.getElementById("uangDibayar").value);
+
+    const subtotal = harga * jumlah;
+    const total = subtotal - (diskon * jumlah);
+    const kembali = total;//bayar - total;
 
     // Reset printer
     await printerCharacteristic.writeValue(new Uint8Array([0x1B, 0x40]));
@@ -491,7 +1105,7 @@ async function printStruk(e) {
     await printStyled("TOKO BERAS 20 DESEMBER", 1, 0x10);
     //await printLine("TOKO BERAS 20 DESEMBER", 1);
     await printLine("\n", 1);
-    await printLine("[ WA: 0812 8524 2366 ]", 1);
+    await printLine("Kontak: 0812 8524 2366", 1);
     //await printLine("--------------------------------", 0);
 
     // ===========================
@@ -534,277 +1148,22 @@ async function printStruk(e) {
 
     alert("Struk berhasil dicetak!");
 }
-
-/*
-async function printStruk(e) {
-    e.preventDefault();
-    if (!printerCharacteristic) {
-        return alert("Printer belum terhubung!");
-    }
-
-    let esc_init = new Uint8Array([0x1B, 0x40]);
-    let esc_align_left = new Uint8Array([0x1B, 0x61, 0x00]);
-    let esc_align_center = new Uint8Array([0x1B, 0x61, 0x01]);
-
-    let font_normal = new Uint8Array([0x1D, 0x21, 0x00]);
-    let font_big = new Uint8Array([0x1D, 0x21, 0x11]);
-
-    try {
-        await printerCharacteristic.writeValue(esc_init);
-
-        // Judul besar
-        await printerCharacteristic.writeValue(esc_align_center);
-        await printerCharacteristic.writeValue(font_big);
-        await printerCharacteristic.writeValue(toBytes("TOKO BERAS 20 DESEMBER\n"));
-
-        await printerCharacteristic.writeValue(font_normal);
-        await printerCharacteristic.writeValue(esc_align_left);
-
-        let text = prosesStruk();
-        await printerCharacteristic.writeValue(toBytes(text));
-
-        alert("Struk berhasil dicetak!");
-    } catch (err) {
-        alert("Gagal print: " + err);
-    }
-}
 */
 
-/** versi normal
-function prosesStruk() {
-    const namaBarang = document.getElementById("namaBarang");
-    const hargaBarang = document.getElementById("hargaBarang");
-    const jumlahBarang = document.getElementById("jumlahBarang");
-    const diskonHarga = document.getElementById("diskonHarga");
-    const uangDibayar = document.getElementById("uangDibayar");
-
-    const subtotal = hargaBarang.value * jumlahBarang.value;
-    const diskon = diskonHarga.value * jumlahBarang.value;
-    const total = subtotal - (diskon * jumlahBarang.value);
-    const kembali = uangDibayar.value - total;
-
-    return `
-[ WA: 0812 8524 2366 ]
-================================
-TOKO BERAS 20 DESEMBER
-Jl. 20 Desember RT02/RW03
---------------------------------
-Kasir   : Mas Pale
-Tanggal : 14 November 2025 14:35
---------------------------------
-Produk  : ${namaBarang.value}
-Harga   : ${hargaBarang.value}
-Jumlah  : ${jumlahBarang.value}
---------------------------------
-Subtotal: ${subtotal}
-Diskon  : ${diskon}
-Total   : ${total}
---------------------------------
-Bayar   : ${uangDibayar.value}
-Kembali : ${kembali}
-================================
-Terima kasih
-Sudah berbelanja
-
-\n\n`;
+function tanggalSekarang(date = new Date()) {
+    const bulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+                   "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    const tgl = date.getDate();
+    const bln = bulan[date.getMonth()];
+    const thn = date.getFullYear();
+    const jam = String(date.getHours()).padStart(2, "0");
+    const menit = String(date.getMinutes()).padStart(2, "0");
+    return `${tgl} ${bln} ${thn} ${jam}:${menit}`;
 }
 
-function toBytes(text) {
-    return new TextEncoder("utf-8").encode(text);
-}
+document.querySelector(".tanggal").textContent = tanggalSekarang();
 
-async function printStruk(e) {
-    e.preventDefault();
-    if (!printerCharacteristic) {
-        return alert("Printer belum terhubung!");
-    }
-
-    // ESC/POS COMMANDS
-    let esc_init = new Uint8Array([0x1B, 0x40]);                      // Reset printer
-    let esc_align_left = new Uint8Array([0x1B, 0x61, 0x00]);           // Left align
-    let esc_align_center = new Uint8Array([0x1B, 0x61, 0x01]);         // Center align
-
-    // FONT SIZE
-    let font_normal = new Uint8Array([0x1D, 0x21, 0x00]);              // Normal
-    let font_big = new Uint8Array([0x1D, 0x21, 0x11]);                 // Double height & width
-
-    let text = prosesStruk();
-    let bytes = toBytes(text);
-
-    try {
-        await printerCharacteristic.writeValue(esc_init);
-
-        // Judul font besar
-        await printerCharacteristic.writeValue(esc_align_center);
-        await printerCharacteristic.writeValue(font_big);
-        await printerCharacteristic.writeValue(toBytes("TOKO BERAS 20 DESEMBER\n"));
-
-        // Kembali ke font normal
-        await printerCharacteristic.writeValue(font_normal);
-
-        // Reset align ke kiri
-        await printerCharacteristic.writeValue(esc_align_left);
-
-        // Print isi struk
-        await printerCharacteristic.writeValue(bytes);
-
-        alert("Struk berhasil dicetak!");
-    } catch (err) {
-        alert("Gagal print: " + err);
-    }
-}
-*/
-
-/*
-function prosesStruk() {
-	const namaBarang = document.getElementById("namaBarang");
-	const hargaBarang = document.getElementById("hargaBarang");
-	const jumlahBarang = document.getElementById("jumlahBarang");
-	const totalHarga = document.getElementById("totalHarga");
-	const diskonHarga = document.getElementById("diskonHarga");
-	const uangDibayar = document.getElementById("uangDibayar");
-	const uangKembalian = document.getElementById("uangKembalian");
-	return (
-`
-     [ WA: 0812 8524 2366]
-================================
-TOKO BERAS 20 DESEMBER
-Jl. 20 Desember RT02/RW03
---------------------------------
-Kasir   : Mas Pale
-Tanggal : 14 November 2025 14:35
---------------------------------
-Produk  : ${namaBarang.value}
-Harga   : ${hargaBarang.value}
-Jumlah  : ${jumlahBarang.value}
---------------------------------
-Subtotal: ${hargaBarang.value * jumlahBarang.value}
-Diskon  : ${diskonHarga.value}
-Total   : ${(hargaBarang.value * jumlahBarang.value) - (diskonHarga.value * jumlahBarang.value)}
---------------------------------
-Bayar   : ${uangDibayar.value}
-Kembali : ${uangDibayar.value - ((hargaBarang.value * jumlahBarang.value) - (diskonHarga.value * jumlahBarang.value))}
-================================
-Terima kasih
-Sudah berbelanja
-
-\n\n`
-    );
-} 
-
-function toBytes(text) {
-    return new TextEncoder("utf-8").encode(text);
-}
-
-async function printStruk(e) {
-	e.preventDefault();
-	if (!printerCharacteristic) {
-        return alert("Printer belum terhubung!");
-    }
-
-    let esc_init = new Uint8Array([0x1B, 0x40]); 
-    let esc_align_left = new Uint8Array([0x1B, 0x61, 0x00]);
-
-    let text = prosesStruk();
-    let bytes = toBytes(text);
-
-    try {
-        await printerCharacteristic.writeValue(esc_init);
-        await printerCharacteristic.writeValue(esc_align_left);
-        await printerCharacteristic.writeValue(bytes);
-
-        alert("Struk berhasil dicetak!");
-    } catch (err) {
-        alert("Gagal print: " + err);
-    }
-}
-*/
-	
-/*
-function buatStruk() {
-    return (
-`TOKO BERAS 20 DESEMBER
-Jl. Raya Kemerdekaan No. 21
-------------------------------
-Produk  : Rojolele Special 5kg
-Harga   : Rp 62.500
-Qty     : 1
-------------------------------
-TOTAL   : Rp 62.500
-==============================
-Terima kasih
-Sudah berbelanja
-
-\n\n`
-    );
-}
-*/
-/*
-function toBytes(text) {
-    return new TextEncoder("utf-8").encode(text);
-}
-*/
-/*
-async function printStruk() {
-    if (!printerCharacteristic) {
-        return alert("Printer belum terhubung!");
-    }
-
-    let esc_init = new Uint8Array([0x1B, 0x40]); 
-    let esc_align_left = new Uint8Array([0x1B, 0x61, 0x00]);
-
-    let text = buatStruk();
-    let bytes = toBytes(text);
-
-    try {
-        await printerCharacteristic.writeValue(esc_init);
-        await printerCharacteristic.writeValue(esc_align_left);
-        await printerCharacteristic.writeValue(bytes);
-
-       // alert("Struk berhasil dicetak!");
-    } catch (err) {
-        alert("Gagal print: " + err);
-    }
-}
-*/
-
-function bukaStruk() {
-	const formStruk = document.getElementById("formStruk");
-	formStruk.classList.add("show");
-	const namaBarang = document.getElementById("namaBarang");
-	//namaBarang.focus();
-}
-
-function tutupStruk() {
-	const formStruk = document.getElementById("formStruk");
-	
-	formStruk.classList.remove("show");
-}
-
-async function buatStruk() {
-	//e.preventDefault();
-    if (!printerCharacteristic) {
-        return alert("Printer belum terhubung!");
-    }
-
-    let esc_init = new Uint8Array([0x1B, 0x40]); 
-    let esc_align_left = new Uint8Array([0x1B, 0x61, 0x00]);
-    
-    bukaStruk();
-/*
-    let text = bukaStruk();
-    let bytes = toBytes(text);
-
-    try {
-        await printerCharacteristic.writeValue(esc_init);
-        await printerCharacteristic.writeValue(esc_align_left);
-        await printerCharacteristic.writeValue(bytes);
-
-       // alert("Struk berhasil dicetak!");
-    } catch (err) {
-        alert("Gagal print: " + err);
-    }*/
-}
+document.getElementById("inputTransaksi").addEventListener("click", inputTransaksi);
 
 document.getElementById("printStruk").addEventListener("click", printStruk);
 
