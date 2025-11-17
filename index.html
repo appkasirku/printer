@@ -9,7 +9,7 @@
         // Daftar Service Worker
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
-                navigator.serviceWorker.register("./service-worker.js")
+                navigator.serviceWorker.register("service-worker.js")
                     .then(() => console.log("SW registered"))
                     .catch(err => console.error("SW error:", err));
             });
@@ -86,7 +86,7 @@
   button { padding: 10px 15px; margin-bottom: 10px; }
   #status { margin-top: 10px; font-weight: bold; }
 </style>
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="manifest.json">
 </head>
 
 <body>
@@ -757,6 +757,7 @@ async function connectPrinter() {
         status.style.color = "blue";
         status.textContent =  `Status: Printer ${printerDevice.name} terhubung`;
         	document.getElementById("formStruk").classList.toggle("hidden");
+        	document.getElementById("pembayaran").focus();
         setTimeout(() => {
         }, 1000);
 
@@ -851,7 +852,7 @@ async function printStruk(e) {
 		for (const p of cart) {
 			await printLine(`${p.namaBarang}`);
 	    await printLine(lineLR(`${formatRupiah(p.hargaBarang)} x ${p.jumlahBarang}`, formatRupiah(p.subtotal)));
-	    await printLine(lineLR(`Diskon: `, formatRupiah(p.subdiskon)));
+	    await printLine(lineLR(`Diskon: ${formatRupiah(p.diskonHarga)} x ${p.jumlahBarang}`, formatRupiah(p.subdiskon)));
 		}
 		
 		await printLine("--------------------------------");
@@ -951,8 +952,7 @@ async function printStruk(e) {
 function bukaStruk() {
 	const formStruk = document.getElementById("formStruk");
 	formStruk.classList.remove("hidden");
-	const namaBarang = document.getElementById("namaBarang");
-	//namaBarang.focus();
+	document.getElementById("namaBarang").focus();
 }
 
 function tutupStruk() {
@@ -1000,7 +1000,7 @@ function tampilkanStruk() {
 						<span class="sth">${formatRupiah(p.subtotal)}</span>
 					</div>
 					<duv class="flex">
-						<span>Diskon: ${formatRupiah(p.diskonHarga)} x ${p.jumlahBarang.toString().replace(".", ",")}</span>
+						<span>Diskon: ${p.diskonHarga != 0 ? `${formatRupiah(p.diskonHarga)} x ${p.jumlahBarang.toString().replace(".", ",")}` : "-"}</span>
 						<span>${formatRupiah(p.subdiskon)}</span>
 					</div>
 				</div>
@@ -1030,6 +1030,7 @@ document.querySelector(".produk").addEventListener("click", (e) => {
     if (!confirm(`Hapus ${nama}?`)) return;
     cart.splice(idx, 1);
     tampilkanStruk();
+    playBell();
 });
 
 // fungsi input transaksi
@@ -1074,6 +1075,7 @@ function inputTransaksi(e) {
 	tampilkanStruk();
 	document.querySelector("#formStruk form").reset();
 	inputNamaBarang.focus();
+	playBell();
 }
 /*
 async function inputTransaksi(e) {
@@ -1161,6 +1163,14 @@ function tanggalSekarang(date = new Date()) {
     return `${tgl} ${bln} ${thn} ${jam}:${menit}`;
 }
 
+// fungsi play beep notifikasi
+/*
+function playBell() {
+    const bell = document.getElementById("soundBeep");
+    bell.currentTime = 0; // reset agar suara bisa diputar cepat berulang
+    bell.play().catch(err => console.log("Auto-play diblokir:", err));
+}
+*/
 document.querySelector(".tanggal").textContent = tanggalSekarang();
 
 document.getElementById("inputTransaksi").addEventListener("click", inputTransaksi);
@@ -1169,6 +1179,22 @@ document.getElementById("printStruk").addEventListener("click", printStruk);
 
 document.getElementById("tutupStruk").addEventListener("click", tutupStruk);
 </script>
-
+<audio id="soundBeep" src="./sounds/beep.mp3" preload="auto"></audio>
+<script>
+    // Fix autoplay block
+    document.addEventListener("click", () => {
+        const a = document.getElementById("soundBeep");
+        a.play().then(() => {
+            a.pause();
+            a.currentTime = 0;
+        }).catch(()=>{});
+    }, { once: true });
+    function playBell() {
+    const bell = document.getElementById("soundBeep");
+    bell.pause();
+    bell.currentTime = 0;
+    bell.play();
+}
+</script>
 </body>
 </html>
