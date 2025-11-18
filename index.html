@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#00aaee">
-<title>Thermal Print 58mm</title>
+<meta name="theme-color" content="#394150">
+<title>Cetak Struk - Thermal Print 58mm</title>
   <script>
         // Daftar Service Worker
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
-                navigator.serviceWorker.register("./service-worker.js")
+                navigator.serviceWorker.register("service-worker.js")
                     .then(() => console.log("SW registered"))
                     .catch(err => console.error("SW error:", err));
             });
@@ -76,6 +76,9 @@
 
         window.onload = tryReconnect;
         */
+        //document.addEventListener("DOMContentLoaded", () => {
+        	setTimeout(() => { document.getElementById("namaBarang").focus()}, 1000);
+        //});
     </script>
 
 
@@ -86,12 +89,12 @@
   button { padding: 10px 15px; margin-bottom: 10px; }
   #status { margin-top: 10px; font-weight: bold; }
 </style>
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="manifest.json">
 </head>
 
 <body>
 
-<h2>Thermal Printer Bluetooth</h2>
+<h2>Cetak Struk - Thermal Printer Bluetooth</h2>
 
 <button onclick="scanBluetooth()">🔍 SCAN SERVICES</button>
 <p id="uuid"></p>
@@ -332,7 +335,7 @@
 <div id="formStruk" class="form-struk">
 	<div class="boxer">
 		<div class="title">
-			<h3>Buat Struk Belanja</h3>
+			<h3>Transaksi Belanja</h3>
 		</div>
 		
 		<form>
@@ -431,11 +434,11 @@
 					<hr>
 					<div class="flex">
 						<span>Bayar</span>
-						<span class="bayar">0</span>
+						<span class="el-bayar">0</span>
 					</div>
 					<div class="flex">
 						<span>Kembali</span>
-						<span class="kembali">0</span>
+						<span class="el-kembali">0</span>
 					</div>
 					<hr>
 					<div class="tq">
@@ -473,27 +476,41 @@
 	font-size: 16px;
 }
 
+.box-pembayaran {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 999;
+	background: rgba(0, 0, 0, 0.5);
+	display: none;
+}
+.box-pembayaran.show {
+	display: block;
+}
 .pembayaran {
 	position: fixed;
 	width: 250px;
 	z-index: 999;
 	background: #eee;
 	left: 50%;
-	top: 20%;
+	top: 10%;
 	transform: translateX(-50%);
 	padding: 30px 20px 0;
 	border-radius: 6px;
 	box-shadow: 0 0 0 1px #bbb,
 	inset 0 0 30px #aaa,
 	4px 8px 10px rgba(0, 0, 0, 0.25);
-	display: none;
-}
-.pembayaran.show {
-	display: block;
 }
 .pembayaran .row {
 	text-align: center;
 }
+.pembayaran .total-belanja,
+.pembayaran .sisa-uang {
+	margin-bottom: 10px;
+}
+.pembayaran p.tb,
 .pembayaran p.su {
 	font-weight: bold;
 	font-size: 24px;
@@ -563,24 +580,39 @@
 	justify-content: center;
 }
 </style>
-		<div class="pembayaran">
-			<span id="tutupPembayaran" class="close">&times;</span>
-			<div class="row">
-				<input id="pembayaran" inputmode="numeric" placeholder="Masukkan pembayaran">
-			</div>
-			<div class="row">
-				<div class="sisa-uang">
-					Kembalian
-					<p class="su">0</p>
+		<div class="box-pembayaran">
+			<div class="pembayaran">
+				<span id="tutupPembayaran" class="close">&times;</span>
+				<div class="row">
+					<input id="pembayaran" inputmode="numeric" placeholder="Masukkan pembayaran">
 				</div>
-				<button id="printStruk">Print Struk</button>
+				<div class="row">
+					<div class="total-belanja">
+						Total Belanja
+						<p class="tb">0</p>
+					</div>
+					<div class="sisa-uang">
+						Kembalian
+						<p class="su">0</p>
+					</div>
+					<button id="printStruk">Print Struk</button>
+				</div>
 			</div>
 		</div>
 		
 	</div>
 </div>
 
+<audio id="soundBeep" src="./sounds/beep.mp3" preload="auto"></audio>
+
 <script>
+function capitalizeWords(text) {
+  return text
+    .replace(/\s+/g, " ") // biarkan spasi tetap normal
+    .trimStart()
+    .replace(/\b([a-zA-Z])(?=\w*)/g, (m) => m.toUpperCase());
+}
+
 function kalkulasiHarga() {
 	const inputNama = document.getElementById("namaBarang");
 	const inputHarga = document.getElementById("hargaBarang");
@@ -588,6 +620,8 @@ function kalkulasiHarga() {
 	const inputDiskon = document.getElementById("diskonHarga");
 	const inputTotalHarga = document.getElementById("totalHarga");
 	const inputTotalDiskon = document.getElementById("totalDiskon");
+	
+	inputNama.value = capitalizeWords(inputNama.value);
 	
 	if (inputNama.value.trim() === "") {
 		if (inputHarga.value.trim() === "0"
@@ -599,7 +633,24 @@ function kalkulasiHarga() {
 	}
 	
 	inputHarga.value = formatRupiah(inputHarga.value.trim().replace(/\D/g, ""));
-	inputJumlah.value = inputJumlah.value.trim().replace(/\./g, ",");
+	
+    let v = inputJumlah.value;
+    // 1. Jika kosong → jadi 0
+    if (v.trim() === "") {
+        inputJumlah.value = "0";
+        return;
+    }
+    // 2. Jika user sudah ketik angka selain 0 → hilangkan leading zero
+    // contoh: "01" → "1"
+    if (/^[0]+[1-9]/.test(v)) {
+        v = v.replace(/^0+/, ""); 
+    }
+    // 3. Jika user mengetik titik → ubah jadi koma
+    v = v.replace(/\./g, ",");
+    // Simpan perubahan
+    inputJumlah.value = v.replace(/\s/g, "");
+	
+	//inputJumlah.value = inputJumlah.value !== "" ? (inputJumlah.value === "0" ? inputJumlah.value : "0") : inputJumlah.value.trim().replace(/\./g, ",");
 	inputDiskon.value = formatRupiah(inputDiskon.value.trim().replace(/\D/g, ""));
 	
 	const harga = Number(inputHarga.value.replace(/\D/g, ""));
@@ -619,9 +670,11 @@ document.querySelectorAll(".box-form input").forEach((input) => {
 });
 
 document.getElementById("prosesPrint").addEventListener("click", () => {
-    document.querySelector(".pembayaran").classList.add("show");
+	if (cart.length === 0) return alert('Belum ada transaksi!');
+    document.querySelector(".box-pembayaran").classList.add("show");
 
     const pembayaran = document.getElementById("pembayaran");
+    const totalBelanja = document.querySelector(".tb");
     const sisaUang = document.querySelector(".su");
     
     const subtotal = cart.reduce((a, b) => a + b.subtotal, 0);
@@ -632,6 +685,7 @@ document.getElementById("prosesPrint").addEventListener("click", () => {
     pembayaran.replaceWith(pembayaran.cloneNode(true));
     const bayarInput = document.getElementById("pembayaran");
 
+    totalBelanja.textContent = formatRupiah(total);
     bayarInput.focus();
     
     bayarInput.addEventListener("input", () => {
@@ -670,8 +724,9 @@ document.getElementById("prosesPrint").addEventListener("click", () => {
 
 // fungsi tutup form pembayaran
 function tutupPembayaran() {
-	document.querySelector(".pembayaran").classList.remove("show");
+	document.querySelector(".box-pembayaran").classList.remove("show");
 	document.getElementById("pembayaran").value = "";
+	document.querySelector(".tb").textContent = "0";
 	document.querySelector(".su").textContent = "0";
 }
 
@@ -826,6 +881,18 @@ function formatRupiah(value) {/*
     });
 }
 
+function bukaStruk() {
+	const formStruk = document.getElementById("formStruk");
+	formStruk.classList.remove("hidden");
+	document.getElementById("namaBarang").focus();
+}
+
+function tutupStruk() {
+	const formStruk = document.getElementById("formStruk");
+	
+	formStruk.classList.remove("show");
+}
+
 async function printStruk(e) {
     e.preventDefault();
 
@@ -838,6 +905,8 @@ async function printStruk(e) {
     await printerCharacteristic.writeValue(new Uint8Array([0x1B, 0x40])); // reset printer
     
     await printStyled("TOKO BERAS 20 DESEMBER", 1, 0x10);
+    
+    await printLine("\n", 1);
     
     await printLine("Kontak: 0812 8524 2366", 1);
     await printLine("Jl. 20 Desember RT02/RW03", 1);
@@ -852,7 +921,9 @@ async function printStruk(e) {
 		for (const p of cart) {
 			await printLine(`${p.namaBarang}`);
 	    await printLine(lineLR(`${formatRupiah(p.hargaBarang)} x ${p.jumlahBarang}`, formatRupiah(p.subtotal)));
-	    await printLine(lineLR(`Diskon: ${formatRupiah(p.diskonHarga)} x ${p.jumlahBarang}`, formatRupiah(p.subdiskon)));
+	    if (p.diskonHarga > 0) {
+	    	await printLine(lineLR(`Diskon: ${formatRupiah(p.diskonHarga)} x ${p.jumlahBarang}`, formatRupiah(p.subdiskon)));
+	    }
 		}
 		
 		await printLine("--------------------------------");
@@ -862,16 +933,16 @@ async function printStruk(e) {
 		const printTotal = printSubtotal - printDiskon;
 
     await printLine(lineLR("Subtotal", formatRupiah(printSubtotal)));
-    await printLine(lineLR("Diskon", "-" + (formatRupiah(printDiskon))));
-    await printLine(lineLR("Total", formatRupiah(printTotal)));
+    await printLine(lineLR("Total Diskon", formatRupiah(printDiskon)));
+    await printLine(lineLR("Total Belanja", formatRupiah(printTotal)));
     
 		await printLine("--------------------------------");
 		
 		const printBayar = document.getElementById("pembayaran").value;
 		const printKembali = document.querySelector(".su").textContent;
 		
-    await printLine(lineLR("Bayar", printBayar));
-    await printLine(lineLR("Kembali", printKembali));
+    await printLine(lineLR("Dibayar", printBayar));
+    await printLine(lineLR("Kembalian", printKembali));
    
   	await printLine("================================");
    
@@ -949,18 +1020,6 @@ async function printStruk(e) {
 		document.getElementById("namaBarang").focus();
 }
 
-function bukaStruk() {
-	const formStruk = document.getElementById("formStruk");
-	formStruk.classList.remove("hidden");
-	document.getElementById("namaBarang").focus();
-}
-
-function tutupStruk() {
-	const formStruk = document.getElementById("formStruk");
-	
-	formStruk.classList.remove("show");
-}
-
 async function buatStruk() {
 	//e.preventDefault();
     if (!printerCharacteristic) {
@@ -996,12 +1055,12 @@ function tampilkanStruk() {
 				<div target-data="${i}" class="item" style="padding:2px 0">
 					<span class="n-produk">${p.namaBarang}</span>
 					<div class="flex">
-						<span class="hxj">${formatRupiah(p.hargaBarang)} x ${p.jumlahBarang.toString().replace(".", ",")}</span>
+						<span class="hxj">   ${formatRupiah(p.hargaBarang)} x ${p.jumlahBarang.toString().replace(".", ",")}</span>
 						<span class="sth">${formatRupiah(p.subtotal)}</span>
 					</div>
 					<duv class="flex">
-						<span>Diskon: ${p.diskonHarga != 0 ? `${formatRupiah(p.diskonHarga)} x ${p.jumlahBarang.toString().replace(".", ",")}` : "-"}</span>
-						<span>${formatRupiah(p.subdiskon)}</span>
+						${p.subdiskon != 0 ? `<span>Diskon: ${formatRupiah(p.diskonHarga)} x ${p.jumlahBarang.toString().replace(".", ",")}</span>
+						<span>${formatRupiah(p.subdiskon)}</span>` : ""}
 					</div>
 				</div>
 			`;
@@ -1179,7 +1238,6 @@ document.getElementById("printStruk").addEventListener("click", printStruk);
 
 document.getElementById("tutupStruk").addEventListener("click", tutupStruk);
 </script>
-<audio id="soundBeep" src="./sounds/beep.mp3" preload="auto"></audio>
 <script>
     // Fix autoplay block
     document.addEventListener("click", () => {
